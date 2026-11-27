@@ -1,0 +1,39 @@
+name: Generate Cleaned Dataset
+
+on:
+  push:
+    branches:
+      - datacleaning
+    paths:
+      - 'dataset/**'
+      - 'preprocessing/**'
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: datacleaning
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pandas
+        run: pip install pandas
+
+      - name: Run cleaning script
+        run: python preprocessing/clean_city_day.py
+
+      - name: Save cleaned CSV
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cleaned_data/
+          git diff --cached --quiet || git commit -m "Add cleaned AQI dataset"
+          git push origin HEAD:datacleaning
